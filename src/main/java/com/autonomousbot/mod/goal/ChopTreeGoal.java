@@ -17,7 +17,7 @@ import java.util.Optional;
  * walk to it, break it. No AI model involved — just a nearest-block search.
  */
 public class ChopTreeGoal extends Goal {
-    private static final int SEARCH_RADIUS = 12;
+    private static final int SEARCH_RADIUS = 20;
     private static final int BREAK_TICKS = 40; // simulated "chopping time"
 
     private final AutonomousBotEntity bot;
