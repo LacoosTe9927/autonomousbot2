@@ -20,7 +20,7 @@ import java.util.Set;
  * mod uses instead of real tool crafting.
  */
 public class MineBlockGoal extends Goal {
-    private static final int SEARCH_RADIUS = 10;
+    private static final int SEARCH_RADIUS = 18;
     private static final int MINE_TICKS = 50;
 
     private static final Set<Block> MINEABLE = Set.of(
@@ -101,11 +101,13 @@ public class MineBlockGoal extends Goal {
         if (bot.getLevel() < 1) return Optional.empty();
 
         BlockPos origin = bot.getBlockPos();
+        BlockPos feetBelow = origin.down(); // never target the block directly under the bot's own feet
         BlockPos closest = null;
         double closestDist = Double.MAX_VALUE;
         for (BlockPos pos : BlockPos.iterate(
                 origin.add(-SEARCH_RADIUS, -6, -SEARCH_RADIUS),
                 origin.add(SEARCH_RADIUS, 2, SEARCH_RADIUS))) {
+            if (pos.equals(feetBelow) || pos.equals(origin)) continue;
             if (MINEABLE.contains(bot.getWorld().getBlockState(pos).getBlock())) {
                 double d = pos.getSquaredDistance(origin);
                 if (d < closestDist) {
