@@ -14,8 +14,8 @@ import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.IronGolemEntity;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
@@ -32,7 +32,7 @@ import net.minecraft.world.World;
  * tougher, builds bigger shelters, and reacts differently over time, all
  * computed locally on your machine.
  */
-public class AutonomousBotEntity extends PathAwareEntity {
+public class AutonomousBotEntity extends IronGolemEntity {
 
     // --- Local, offline "brain" state -------------------------------------------------
     // These counters are the whole "memory" of the bot. No file, no server,
@@ -44,18 +44,18 @@ public class AutonomousBotEntity extends PathAwareEntity {
     private int oreCollected = 0;
     private int level = 1;
 
-    public AutonomousBotEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
+    public AutonomousBotEntity(EntityType<? extends IronGolemEntity> entityType, World world) {
         super(entityType, world);
         this.setPersistent();
     }
 
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
-                .add(EntityAttributes.MAX_HEALTH, 30.0)
-                .add(EntityAttributes.MOVEMENT_SPEED, 0.3)
-                .add(EntityAttributes.ATTACK_DAMAGE, 4.0)
-                .add(EntityAttributes.FOLLOW_RANGE, 32.0)
-                .add(EntityAttributes.ARMOR, 2.0);
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0)
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.3)
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 4.0)
+                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 32.0)
+                .add(EntityAttributes.GENERIC_ARMOR, 2.0);
     }
 
     @Override
@@ -92,10 +92,10 @@ public class AutonomousBotEntity extends PathAwareEntity {
         if (totalResources >= requiredForNextLevel && level < 10) {
             level++;
             // Getting tougher and faster each level, entirely locally computed.
-            this.getAttributeInstance(EntityAttributes.MAX_HEALTH)
+            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH)
                     .setBaseValue(30.0 + (level - 1) * 5.0);
-            this.setHealth((float) this.getAttributeValue(EntityAttributes.MAX_HEALTH));
-            this.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE)
+            this.setHealth((float) this.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH));
+            this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE)
                     .setBaseValue(4.0 + (level - 1) * 1.0);
 
             if (this.getWorld() instanceof ServerWorld) {
@@ -140,7 +140,7 @@ public class AutonomousBotEntity extends PathAwareEntity {
     }
 
     @Override
-    protected void writeCustomDataToNbt(NbtCompound nbt) {
+    public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
         nbt.putInt("WoodCollected", woodCollected);
         nbt.putInt("StoneCollected", stoneCollected);
@@ -149,7 +149,7 @@ public class AutonomousBotEntity extends PathAwareEntity {
     }
 
     @Override
-    protected void readCustomDataFromNbt(NbtCompound nbt) {
+    public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
         this.woodCollected = nbt.getInt("WoodCollected");
         this.stoneCollected = nbt.getInt("StoneCollected");
