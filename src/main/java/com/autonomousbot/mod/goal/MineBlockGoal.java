@@ -72,7 +72,7 @@ public class MineBlockGoal extends Goal {
 
         double distSq = bot.squaredDistanceTo(
                 targetBlock.getX() + 0.5, targetBlock.getY() + 0.5, targetBlock.getZ() + 0.5);
-        if (distSq <= 4.5) {
+        if (distSq <= 3.0) {
             bot.getNavigation().stop();
             bot.getLookControl().lookAt(
                     targetBlock.getX() + 0.5, targetBlock.getY() + 0.5, targetBlock.getZ() + 0.5);
