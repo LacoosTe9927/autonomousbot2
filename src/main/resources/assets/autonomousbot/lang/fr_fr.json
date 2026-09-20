@@ -1,0 +1,5 @@
+{
+  "entity.autonomousbot.autonomous_bot": "Bot Autonome",
+  "item.autonomousbot.autonomous_bot_spawn_egg": "Œuf d'invocation - Bot Autonome",
+  "itemGroup.autonomousbot": "Bot Autonome"
+}

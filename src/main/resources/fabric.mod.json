@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "autonomousbot",
+  "version": "${version}",
+  "name": "Autonomous Bot",
+  "description": "Un compagnon Minecraft 100% autonome et local : il explore, coupe du bois, mine, se construit un abri et se défend tout seul, sans aucune IA externe ni clé API.",
+  "authors": ["Claude"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.autonomousbot.mod.AutonomousBotMod"],
+    "client": ["com.autonomousbot.mod.AutonomousBotModClient"]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}
