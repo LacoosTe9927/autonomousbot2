@@ -63,7 +63,7 @@ public class ChopTreeGoal extends Goal {
 
         double distSq = bot.squaredDistanceTo(
                 targetLog.getX() + 0.5, targetLog.getY() + 0.5, targetLog.getZ() + 0.5);
-        if (distSq <= 4.5) {
+        if (distSq <= 3.0) {
             bot.getNavigation().stop();
             bot.getLookControl().lookAt(
                     targetLog.getX() + 0.5, targetLog.getY() + 0.5, targetLog.getZ() + 0.5);
