@@ -2,7 +2,6 @@ package com.autonomousbot.mod;
 
 import com.autonomousbot.mod.entity.AutonomousBotEntity;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.EntityDimensions;
@@ -45,7 +44,7 @@ public class AutonomousBotMod implements ModInitializer {
     public static final Item AUTONOMOUS_BOT_SPAWN_EGG = Registry.register(
             Registries.ITEM,
             Identifier.of(MOD_ID, "autonomous_bot_spawn_egg"),
-            new SpawnEggItem(AUTONOMOUS_BOT, new FabricItemSettings())
+            new SpawnEggItem(AUTONOMOUS_BOT, new Item.Settings())
     );
 
     @Override
