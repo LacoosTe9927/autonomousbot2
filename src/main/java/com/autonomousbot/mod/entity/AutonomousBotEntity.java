@@ -74,7 +74,7 @@ public class AutonomousBotEntity extends PathAwareEntity {
         this.goalSelector.add(7, new LookAroundGoal(this));
 
         this.targetSelector.add(1, new RevengeGoal(this));
-        this.targetSelector.add(2, new ActiveTargetGoal<>(this, HostileEntity.class, 10, true, false,
+        this.targetSelector.add(2, new ActiveTargetGoal<>(this, HostileEntity.class, 10, true, true,
                 entity -> entity instanceof HostileEntity));
     }
 
