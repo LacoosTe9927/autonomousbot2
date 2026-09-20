@@ -4,6 +4,7 @@ import com.autonomousbot.mod.goal.BuildShelterGoal;
 import com.autonomousbot.mod.goal.ChopTreeGoal;
 import com.autonomousbot.mod.goal.MineBlockGoal;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
@@ -22,8 +23,25 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
+import java.util.List;
+
+/**
+ * A fully local, offline autonomous companion.
+ *
+ * There is no language model, no API key and no network call involved.
+ * Every decision comes from plain Java rules that read the world around the
+ * bot (nearby blocks / entities, its own stats) — see the `goal` package.
+ * The bot "evolves" by leveling up as it gathers resources: it becomes
+ * tougher, builds bigger shelters, and reacts differently over time, all
+ * computed locally on your machine.
+ */
 public class AutonomousBotEntity extends PathAwareEntity {
 
+    // --- Local, offline "brain" state -------------------------------------------------
+    // These counters are the whole "memory" of the bot. No file, no server,
+    // no external call reads or writes them — they only live in this entity
+    // and are saved/loaded with the Minecraft world save (readCustomData /
+    // writeCustomData below), exactly like vanilla mob data.
     private int woodCollected = 0;
     private int stoneCollected = 0;
     private int oreCollected = 0;
@@ -45,6 +63,7 @@ public class AutonomousBotEntity extends PathAwareEntity {
 
     @Override
     protected void initGoals() {
+        // Priority is the first number: lower = more urgent.
         this.goalSelector.add(0, new SwimGoal(this));
         this.goalSelector.add(1, new BuildShelterGoal(this));
         this.goalSelector.add(2, new MeleeAttackGoal(this, 1.2D, false));
@@ -62,8 +81,25 @@ public class AutonomousBotEntity extends PathAwareEntity {
     @Override
     public void tick() {
         super.tick();
+        // Every so often, check whether the bot has gathered enough to level up.
+        // This is the "evolves on its own" part: no external decision-maker,
+        // just a local threshold check running on the bot's own tick.
         if (!this.getWorld().isClient && this.age % 100 == 0) {
             maybeLevelUp();
+        }
+        if (!this.getWorld().isClient && this.age % 10 == 0) {
+            vacuumNearbyDrops();
+        }
+    }
+
+    // Makes any item lying within 2 blocks (its own drops from chopping/mining,
+    // or anything a player throws near it) visually disappear, as if picked up.
+    // Purely local — just a distance check against entities already in the world.
+    private void vacuumNearbyDrops() {
+        List<ItemEntity> nearby = this.getWorld().getEntitiesByClass(
+                ItemEntity.class, this.getBoundingBox().expand(2.0), item -> true);
+        for (ItemEntity item : nearby) {
+            item.discard();
         }
     }
 
@@ -72,6 +108,7 @@ public class AutonomousBotEntity extends PathAwareEntity {
         int requiredForNextLevel = level * 32;
         if (totalResources >= requiredForNextLevel && level < 10) {
             level++;
+            // Getting tougher and faster each level, entirely locally computed.
             this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH)
                     .setBaseValue(30.0 + (level - 1) * 5.0);
             this.setHealth((float) this.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH));
@@ -79,7 +116,7 @@ public class AutonomousBotEntity extends PathAwareEntity {
                     .setBaseValue(4.0 + (level - 1) * 1.0);
 
             if (this.getWorld() instanceof ServerWorld) {
-                this.getWorld().sendEntityStatus(this, (byte) 18);
+                this.getWorld().sendEntityStatus(this, (byte) 18); // vanilla "happy villager" particles
             }
             this.sendMessageNearby(Text.literal("[Bot] Niveau " + level + " atteint ! (bois:" + woodCollected
                     + " pierre:" + stoneCollected + " minerai:" + oreCollected + ")"));
@@ -94,6 +131,7 @@ public class AutonomousBotEntity extends PathAwareEntity {
         }
     }
 
+    // --- Accessors used by the goal classes --------------------------------------------
     public void addWood(int amount) {
         this.woodCollected += amount;
     }
