@@ -14,37 +14,22 @@ import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.IronGolemEntity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
-/**
- * A fully local, offline autonomous companion.
- *
- * There is no language model, no API key and no network call involved.
- * Every decision comes from plain Java rules that read the world around the
- * bot (nearby blocks / entities, its own stats) — see the `goal` package.
- * The bot "evolves" by leveling up as it gathers resources: it becomes
- * tougher, builds bigger shelters, and reacts differently over time, all
- * computed locally on your machine.
- */
-public class AutonomousBotEntity extends IronGolemEntity {
+public class AutonomousBotEntity extends PathAwareEntity {
 
-    // --- Local, offline "brain" state -------------------------------------------------
-    // These counters are the whole "memory" of the bot. No file, no server,
-    // no external call reads or writes them — they only live in this entity
-    // and are saved/loaded with the Minecraft world save (readCustomData /
-    // writeCustomData below), exactly like vanilla mob data.
     private int woodCollected = 0;
     private int stoneCollected = 0;
     private int oreCollected = 0;
     private int level = 1;
 
-    public AutonomousBotEntity(EntityType<? extends IronGolemEntity> entityType, World world) {
+    public AutonomousBotEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         this.setPersistent();
     }
@@ -60,7 +45,6 @@ public class AutonomousBotEntity extends IronGolemEntity {
 
     @Override
     protected void initGoals() {
-        // Priority is the first number: lower = more urgent.
         this.goalSelector.add(0, new SwimGoal(this));
         this.goalSelector.add(1, new BuildShelterGoal(this));
         this.goalSelector.add(2, new MeleeAttackGoal(this, 1.2D, false));
@@ -78,9 +62,6 @@ public class AutonomousBotEntity extends IronGolemEntity {
     @Override
     public void tick() {
         super.tick();
-        // Every so often, check whether the bot has gathered enough to level up.
-        // This is the "evolves on its own" part: no external decision-maker,
-        // just a local threshold check running on the bot's own tick.
         if (!this.getWorld().isClient && this.age % 100 == 0) {
             maybeLevelUp();
         }
@@ -91,7 +72,6 @@ public class AutonomousBotEntity extends IronGolemEntity {
         int requiredForNextLevel = level * 32;
         if (totalResources >= requiredForNextLevel && level < 10) {
             level++;
-            // Getting tougher and faster each level, entirely locally computed.
             this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH)
                     .setBaseValue(30.0 + (level - 1) * 5.0);
             this.setHealth((float) this.getAttributeValue(EntityAttributes.GENERIC_MAX_HEALTH));
@@ -99,7 +79,7 @@ public class AutonomousBotEntity extends IronGolemEntity {
                     .setBaseValue(4.0 + (level - 1) * 1.0);
 
             if (this.getWorld() instanceof ServerWorld) {
-                this.getWorld().sendEntityStatus(this, (byte) 18); // vanilla "happy villager" particles
+                this.getWorld().sendEntityStatus(this, (byte) 18);
             }
             this.sendMessageNearby(Text.literal("[Bot] Niveau " + level + " atteint ! (bois:" + woodCollected
                     + " pierre:" + stoneCollected + " minerai:" + oreCollected + ")"));
@@ -114,7 +94,6 @@ public class AutonomousBotEntity extends IronGolemEntity {
         }
     }
 
-    // --- Accessors used by the goal classes --------------------------------------------
     public void addWood(int amount) {
         this.woodCollected += amount;
     }
